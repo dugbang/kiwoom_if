@@ -10,6 +10,7 @@ from tr_stock import Opt10081
 class TradeInterface(QAxWidget):
     def __init__(self, login_dialog=False):
         super().__init__()
+
         self.setControl("KHOPENAPI.KHOpenAPICtrl.1")
         self.OnEventConnect.connect(self.__handler_login)
         self.OnReceiveTrData.connect(self.__receive_tr_data)
@@ -18,7 +19,7 @@ class TradeInterface(QAxWidget):
         self.__active_handle = False
 
         self.__accounts = list()
-        # todo; 실서버 사용시 password 설정, UI 같이 수정, 데이터 저장하기 추가
+        # todo; 실서버 사용시 password 설정, UI 같이 수정, 데이터 저장기능 추가
         self.__pw = '0000'
 
         self.__receive_handler = dict()
@@ -46,14 +47,15 @@ class TradeInterface(QAxWidget):
         ret = self.dynamicCall("GetRepeatCnt(QString, QString)", tr_code, rq_name)
         return ret
 
-    def __waiting_active_handle(self):
-        self.__active_handle = False
-        while self.__active_handle is False:
-            PumpWaitingMessages()
-            sleep(0.001)
-
     def login(self):
         self.dynamicCall("CommConnect()")
+        self.__waiting_active_handle()
+
+    def add_receive_handler(self, rq_name, handler):
+        self.__receive_handler[rq_name] = handler
+
+    def comm_rq_data(self, rq_name, tr_code, next_, screen_no):
+        self.dynamicCall("CommRqData(QString, QString, int, QString)", rq_name, tr_code, next_, screen_no)
         self.__waiting_active_handle()
 
     def __handler_login(self, err_code):
@@ -69,14 +71,16 @@ class TradeInterface(QAxWidget):
         # logger.debug(f"사용자 ID: {self.GetLoginInfo('USER_ID')}")
         # logger.debug(f"사용자명: {self.GetLoginInfo('USER_NAME')}")
 
-    def add_receive_handler(self, rq_name, handler):
-        self.__receive_handler[rq_name] = handler
-
     def __receive_tr_data(self, screen_no, rq_name, tr_code, record_name, next_, unused1, unused2, unused3, unused4):
         # logger.debug(f"{screen_no, rq_name, tr_code, next_}")
-        self.__receive_handler[rq_name](next_)
+        try:
+            self.__receive_handler[rq_name](next_)
+        except KeyError:
+            logger.critical(f"__receive_tr_data key error; {rq_name}")
         self.__active_handle = True
 
-    def comm_rq_data(self, rq_name, tr_code, next_, screen_no):
-        self.dynamicCall("CommRqData(QString, QString, int, QString)", rq_name, tr_code, next_, screen_no)
-        self.__waiting_active_handle()
+    def __waiting_active_handle(self):
+        self.__active_handle = False
+        while self.__active_handle is False:
+            PumpWaitingMessages()
+            sleep(0.001)
