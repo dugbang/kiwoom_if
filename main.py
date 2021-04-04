@@ -6,9 +6,7 @@ from PyQt5.QtCore import QCoreApplication
 class MyApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.initUI()
 
-    def initUI(self):
         btn = QPushButton('Quit', self)
         btn.move(50, 50)
         btn.resize(btn.sizeHint())

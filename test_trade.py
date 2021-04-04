@@ -37,6 +37,9 @@ class MyWindow(QMainWindow):
         self.__if.opt10081.download(s_date=20210331, code='000660')
         self.__if.opt10081.records_output()
 
+        self.__if.opt10001.download(code='000660')
+        self.__if.opt10001.records_output()
+
     def event_connect(self, err_code):
         if err_code == 0:
             self.text_edit.append("로그인 성공")

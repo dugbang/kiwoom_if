@@ -1,11 +1,14 @@
 from my_logger import logger
 
 
-class Opt10081:
+class Opt10001:
+    """
+    주식기본정보요청
+    """
     def __init__(self, interface=None):
-        self.__rq_name = 'opt10081_req'
-        self.__tr_code = 'opt10081'
-        self.__screen_no = '0101'
+        self.__rq_name = 'opt10001_req'
+        self.__tr_code = 'opt10001'
+        self.__screen_no = '0001'
         self.__next = '0'
 
         self.__if = interface
@@ -18,7 +21,46 @@ class Opt10081:
         return True if self.__next == '2' else False
 
     def __receive_data(self, next_):
-        logger.debug(f"__receive_data...")
+        logger.debug(f"__receive_data; {self.__class__.__name__}")
+        code = self.__if.get_field_data(self.__tr_code, '', self.__rq_name, 0, '종목코드')
+        name = self.__if.get_field_data(self.__tr_code, '', self.__rq_name, 0, '종목명')
+        # .... 생략
+        price = self.__if.get_field_data(self.__tr_code, '', self.__rq_name, 0, '현재가')
+
+        self.records.append((code, name, price))
+
+    def download(self, code):
+        self.records = list()
+        self.__next = '0'
+        self.__if.set_field_data('종목코드', code)
+        self.__if.comm_rq_data(self.__rq_name, self.__tr_code, self.__next, self.__screen_no)
+
+    def records_output(self):
+        for r in self.records:
+            logger.debug(r)
+
+
+class Opt10081:
+    """
+    주식일봉차트조회요청
+    """
+    def __init__(self, interface=None):
+        self.__rq_name = 'opt10081_req'
+        self.__tr_code = 'opt10081'
+        self.__screen_no = '0081'
+        self.__next = '0'
+
+        self.__if = interface
+        self.__if.add_receive_handler(self.__rq_name, self.__receive_data)
+
+        self.records = list()
+
+    @property
+    def is_next(self):
+        return True if self.__next == '2' else False
+
+    def __receive_data(self, next_):
+        logger.debug(f"__receive_data; {self.__class__.__name__}")
         self.__next = next_
         for i in range(self.__if.get_block_count(self.__tr_code, self.__rq_name)):
             date = int(self.__if.get_field_data(self.__tr_code, "", self.__rq_name, i, "일자"))
@@ -33,6 +75,7 @@ class Opt10081:
 
     def download(self, s_date, code, modify_price=1):
         logger.debug(f"download; {s_date}, {code}")
+        self.records = list()
         self.__next = '0'
         self.__if.set_field_data('종목코드', code)
         self.__if.set_field_data('기준일자', s_date)

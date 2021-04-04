@@ -4,7 +4,7 @@ from PyQt5.QAxContainer import QAxWidget
 from pythoncom import PumpWaitingMessages
 
 from my_logger import logger
-from tr_stock import Opt10081
+from tr_stock import Opt10081, Opt10001
 
 
 class TradeInterface(QAxWidget):
@@ -26,6 +26,7 @@ class TradeInterface(QAxWidget):
 
         # TR list =============================
         self.opt10081 = Opt10081(self)
+        self.opt10001 = Opt10001(self)
 
     @staticmethod
     def tr_req_time_delay():
