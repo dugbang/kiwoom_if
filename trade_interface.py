@@ -16,7 +16,7 @@ class TradeInterface(QAxWidget):
         self.OnReceiveTrData.connect(self.__receive_tr_data)
 
         self.__login_dialog = login_dialog
-        self.__active_handle = False
+        self.__receive_event = False
 
         self.__accounts = list()
         # todo; 실서버 사용시 password 설정, UI 같이 수정, 데이터 저장기능 추가
@@ -50,20 +50,20 @@ class TradeInterface(QAxWidget):
 
     def login(self):
         self.dynamicCall("CommConnect()")
-        self.__waiting_active_handle()
+        self.__waiting_event()
 
     def add_receive_handler(self, rq_name, handler):
         self.__receive_handler[rq_name] = handler
 
     def comm_rq_data(self, rq_name, tr_code, next_, screen_no):
         self.dynamicCall("CommRqData(QString, QString, int, QString)", rq_name, tr_code, next_, screen_no)
-        self.__waiting_active_handle()
+        self.__waiting_event()
 
     def __handler_login(self, err_code):
         logger.info(f"login result; {err_code}")
         if self.__login_dialog is True:
             self.dynamicCall("KOA_Functions(QString, QString)", "ShowAccountWindow", "")
-        self.__active_handle = True
+        self.__receive_event = True
 
         # logger.debug(f"계좌수: {self.GetLoginInfo('ACCOUNT_CNT')}")
         self.__accounts = self.GetLoginInfo('ACCNO').split(';')
@@ -78,10 +78,10 @@ class TradeInterface(QAxWidget):
             self.__receive_handler[rq_name](next_)
         except KeyError:
             logger.critical(f"__receive_tr_data key error; {rq_name}")
-        self.__active_handle = True
+        self.__receive_event = True
 
-    def __waiting_active_handle(self):
-        self.__active_handle = False
-        while self.__active_handle is False:
+    def __waiting_event(self):
+        self.__receive_event = False
+        while self.__receive_event is False:
             PumpWaitingMessages()
             sleep(0.001)
