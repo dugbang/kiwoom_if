@@ -8,7 +8,7 @@ class Opt10001:
     def __init__(self, interface=None):
         self.__rq_name = 'opt10001_req'
         self.__tr_code = 'opt10001'
-        self.__screen_no = '0001'
+        self.__screen_no = '1001'
         self.__next = '0'
 
         self.__if = interface
@@ -47,7 +47,7 @@ class Opt10081:
     def __init__(self, interface=None):
         self.__rq_name = 'opt10081_req'
         self.__tr_code = 'opt10081'
-        self.__screen_no = '0081'
+        self.__screen_no = '1081'
         self.__next = '0'
 
         self.__if = interface
@@ -70,7 +70,6 @@ class Opt10081:
             close = int(self.__if.get_field_data(self.__tr_code, "", self.__rq_name, i, "현재가"))
             volume = int(self.__if.get_field_data(self.__tr_code, "", self.__rq_name, i, "거래량"))
 
-            # logger.debug(f"{date, open_, high, low, close, volume}")
             self.records.append([date, open_, high, low, close, volume])
 
     def download(self, s_date, code, modify_price=1):
